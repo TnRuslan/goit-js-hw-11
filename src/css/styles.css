@@ -2,6 +2,11 @@
   --timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   --animation-duration: 250ms;
 }
+a {
+  display: block;
+  text-decoration: none;
+  color: black;
+}
 
 .hidden {
   position: absolute;
@@ -18,6 +23,7 @@
 }
 
 .search-form {
+  text-align: center;
   margin-bottom: 20px;
 }
 
@@ -29,6 +35,7 @@
   justify-content: center;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 30px;
 }
 
 .photo-card {
@@ -48,12 +55,25 @@
   transition: transform var(--animation-duration) var(--timing-function);
 }
 
-.gallery__link {
-  display: block;
-  text-decoration: none;
-  height: 100%;
+.info {
+  display: flex;
+  gap: 10px;
+
+  padding: 10px;
+
+  text-align: center;
+  font-size: 12px;
+
 }
 
-.gallery__link:hover {
-  cursor: zoom-in;
+.load-more {
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+
+  width: 200px;
+  height: 30px;
+
+  margin-bottom: 30px;
 }
+

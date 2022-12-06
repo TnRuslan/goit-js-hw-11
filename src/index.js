@@ -4,54 +4,73 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const form = document.querySelector('#search-form');
-const galery = document.querySelector('.gallery');
+const gallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
 
 let fetchName = '';
 let pageNamber = 1;
+const imagesPerPage = 40;
+let totalImages = 0;
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 form.addEventListener('submit', onFetchImagesByName);
 loadMoreBtn.addEventListener('click', onLoadMoreImages);
 
-function onFetchImagesByName(e) {
+async function onFetchImagesByName(e) {
   e.preventDefault();
   pageNamber = 1;
-
+  totalImages = 0;
   fetchName = e.target.elements.searchQuery.value;
-  console.log(fetchName);
 
-  fetchImages(fetchName).then(r => {
-    galery.innerHTML = '';
-    console.log(r.data.totalHits);
-    if (r.data.total === 0) {
-      Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-      return;
-    }
+  removeLoadMoreBatton();
 
-    removeLoadMoreBatton(r.data.totalHits);
+  const dataByFetch = await fetchImages(fetchName);
 
-    Notiflix.Notify.info(`Hooray! We found ${r.data.totalHits} images.`);
-    galery.innerHTML = createMarkupByFetch(r.data.hits);
-    const lightbox = new SimpleLightbox('.gallery div');
+  gallery.innerHTML = '';
 
-    pageNamber += 1;
-  });
+  if (dataByFetch.data.total === 0) {
+    return Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
+
+  incrimentTotalImages();
+
+  if (dataByFetch.data.totalHits > imagesPerPage) {
+    addLoadMoreBatton();
+  }
+
+  Notiflix.Notify.success(
+    `Hooray! We found ${dataByFetch.data.totalHits} images.`
+  );
+
+  gallery.innerHTML = createMarkupByFetch(dataByFetch.data.hits);
+
+  lightbox.refresh();
+
+  scroll();
+
+  pageNamber += 1;
 }
 
-function removeLoadMoreBatton(totalHits) {
-  if (totalHits > 40) {
-    loadMoreBtn.classList.remove('hidden');
-  }
+function incrimentTotalImages() {
+  totalImages += imagesPerPage;
 }
 
 function addLoadMoreBatton() {
+  loadMoreBtn.classList.remove('hidden');
+}
+
+function removeLoadMoreBatton() {
   loadMoreBtn.classList.add('hidden');
 }
 
-function fetchImages(name) {
-  return axios({
+async function fetchImages(name) {
+  return await axios({
     method: 'get',
     url: 'https://pixabay.com/api/',
     params: {
@@ -61,46 +80,71 @@ function fetchImages(name) {
       orientation: 'horizontal',
       safesearch: 'true',
       page: `${pageNamber}`,
-      per_page: 40,
+      per_page: `${imagesPerPage}`,
     },
   });
 }
 
-function onLoadMoreImages() {
-  fetchImages(fetchName)
-    .then(r => {
-      galery.insertAdjacentHTML('beforeend', createMarkupByFetch(r.data.hits));
-    })
-    .catch(error => {
-      console.log(error);
-      addLoadMoreBatton;
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-    });
+async function onLoadMoreImages() {
+  const dataByFetch = await fetchImages(fetchName);
+
+  gallery.insertAdjacentHTML(
+    'beforeend',
+    createMarkupByFetch(dataByFetch.data.hits)
+  );
+
+  incrimentTotalImages();
+
+  if (totalImages > dataByFetch.data.totalHits) {
+    removeLoadMoreBatton();
+    return Notiflix.Notify.warning(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
+
+  lightbox.refresh();
+
   pageNamber += 1;
 }
 
 function createMarkupByFetch(datas) {
   return datas
     .map(
-      data => `<div class="photo-card" href="${data.largeImageURL}">
-  <img class="gallery-img" src="${data.webformatURL}" alt="${data.tags}" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes ${data.likes}</b>
-    </p>
-    <p class="info-item">
-      <b>Views ${data.views}</b>
-    </p>
-    <p class="info-item">
-      <b>Comments ${data.comments}</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads ${data.downloads}</b>
-    </p>
-  </div>
-</div>`
+      data => `
+      <a class="photo-card" href="${data.largeImageURL}">
+        <div>
+          <img class="gallery-img" src="${data.webformatURL}" alt="${data.tags}" loading="lazy" />
+          <div class="info">
+            <p class="info-item">
+              <b>Likes: ${data.likes}</b>
+            </p>
+            <p class="info-item">
+              <b>Views: ${data.views}</b>
+            </p>
+            <p class="info-item">
+              <b>Comments: ${data.comments}</b>
+            </p>
+            <p class="info-item">
+              <b>Downloads: ${data.downloads}</b>
+            </p>
+          </div>
+        </div>
+      </a>`
     )
     .join('');
 }
+
+// const card = {
+//   height: 200,
+// };
+
+// const { height: cardHeight } =
+//   document.querySelector('.gallery').firstElementChild.getBoundingClientRect()
+//     .bottom + window.scrollY;
+
+// window.scrollBy({
+//   top: cardHeight * 2,
+//   behavior: 'smooth',
+// });
+
+gallery.getBoundingClientRect();
