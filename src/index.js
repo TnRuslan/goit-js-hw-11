@@ -52,21 +52,9 @@ async function onFetchImagesByName(e) {
 
   lightbox.refresh();
 
-  scroll();
+  scrollByElement();
 
   pageNamber += 1;
-}
-
-function incrimentTotalImages() {
-  totalImages += imagesPerPage;
-}
-
-function addLoadMoreBatton() {
-  loadMoreBtn.classList.remove('hidden');
-}
-
-function removeLoadMoreBatton() {
-  loadMoreBtn.classList.add('hidden');
 }
 
 async function fetchImages(name) {
@@ -104,7 +92,21 @@ async function onLoadMoreImages() {
 
   lightbox.refresh();
 
+  scrollByElement();
+
   pageNamber += 1;
+}
+
+function incrimentTotalImages() {
+  totalImages += imagesPerPage;
+}
+
+function addLoadMoreBatton() {
+  loadMoreBtn.classList.remove('hidden');
+}
+
+function removeLoadMoreBatton() {
+  loadMoreBtn.classList.add('hidden');
 }
 
 function createMarkupByFetch(datas) {
@@ -134,17 +136,13 @@ function createMarkupByFetch(datas) {
     .join('');
 }
 
-// const card = {
-//   height: 200,
-// };
+function scrollByElement() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
 
-// const { height: cardHeight } =
-//   document.querySelector('.gallery').firstElementChild.getBoundingClientRect()
-//     .bottom + window.scrollY;
-
-// window.scrollBy({
-//   top: cardHeight * 2,
-//   behavior: 'smooth',
-// });
-
-gallery.getBoundingClientRect();
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
+}
